@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F7A440"/>
+      <stop offset="1" stop-color="#D9482B"/>
+    </linearGradient>
+    <linearGradient id="inside" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3A2620"/>
+      <stop offset="1" stop-color="#241713"/>
+    </linearGradient>
+    <linearGradient id="badge" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#34D399"/>
+      <stop offset="1" stop-color="#059669"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- steam -->
+  <g fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" opacity="0.8">
+    <path d="M196 186 C176 164 216 148 196 124 C188 114 190 104 196 96"/>
+    <path d="M256 180 C236 158 276 142 256 118 C248 108 250 98 256 90"/>
+    <path d="M316 186 C296 164 336 148 316 124 C308 114 310 104 316 96"/>
+  </g>
+  <!-- lid -->
+  <rect x="230" y="190" width="52" height="30" rx="12" fill="#fff"/>
+  <rect x="108" y="212" width="296" height="30" rx="15" fill="#fff"/>
+  <!-- pot -->
+  <rect x="54" y="272" width="70" height="32" rx="16" fill="#fff"/>
+  <rect x="388" y="272" width="70" height="32" rx="16" fill="#fff"/>
+  <rect x="100" y="252" width="312" height="180" rx="44" fill="#fff"/>
+  <rect x="128" y="276" width="256" height="132" rx="26" fill="url(#inside)"/>
+  <!-- bar chart inside the pot -->
+  <rect x="179" y="352" width="28" height="40" rx="9" fill="#fff" opacity="0.55"/>
+  <rect x="221" y="324" width="28" height="68" rx="9" fill="#fff" opacity="0.7"/>
+  <rect x="263" y="338" width="28" height="54" rx="9" fill="#fff" opacity="0.85"/>
+  <rect x="305" y="304" width="28" height="88" rx="9" fill="#fff"/>
+  <!-- trend line -->
+  <polyline points="193,334 235,306 277,320 319,290" fill="none" stroke="#FFD34D" stroke-width="9"
+            stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- home badge -->
+  <circle cx="404" cy="124" r="64" fill="url(#badge)" stroke="#fff" stroke-width="10"/>
+  <g fill="#fff">
+    <path d="M368 128 L404 96 L440 128 Z" stroke="#fff" stroke-width="8" stroke-linejoin="round"/>
+    <rect x="380" y="124" width="48" height="38" rx="4"/>
+  </g>
+  <rect x="397" y="138" width="14" height="24" rx="3" fill="#059669"/>
+</svg>

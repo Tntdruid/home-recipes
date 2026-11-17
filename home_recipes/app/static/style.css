@@ -57,10 +57,18 @@ input, textarea {
 #search { flex: 1; min-width: 220px; }
 
 .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; }
-.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; align-items: start; }
 .recipe { color: inherit; transition: border-color .15s; }
 .recipe:hover { border-color: var(--accent); }
 .recipe p { margin: 0 0 8px; }
+.recipe .thumb { display: block; width: calc(100% + 36px); margin: -18px -18px 12px; aspect-ratio: 16 / 10; object-fit: cover; border-radius: var(--radius) var(--radius) 0 0; }
+.hero { display: block; width: 100%; max-height: 380px; object-fit: cover; border-radius: 10px; margin-bottom: 16px; }
+.image-field { display: grid; gap: 6px; justify-items: start; }
+.image-field .label { font-weight: 600; }
+.image-field .preview { max-width: 220px; border-radius: 10px; }
+.form label.inline { display: flex; gap: 6px; align-items: center; font-weight: 400; }
+.form label.inline input { width: auto; }
+.recipe { overflow: hidden; }
 
 .chip { display: inline-block; margin: 0 6px 6px 0; padding: 2px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 12px; }
 .chip.on { font-weight: 600; }

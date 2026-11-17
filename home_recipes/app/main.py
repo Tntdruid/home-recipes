@@ -1,4 +1,5 @@
 import logging
+import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Optional
@@ -8,13 +9,16 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 import db
+import images
+import mealie
 import recipes
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 log = logging.getLogger("main")
 
 STATIC = Path(__file__).parent / "static"
-VERSION = "0.1.0"
+VERSION = "0.2.0"
+MAX_IMPORT_BYTES = 1024 * 1024 * 1024
 
 
 @asynccontextmanager
@@ -78,6 +82,43 @@ def delete_recipe(recipe_id: int):
 @app.post("/api/recipes/{recipe_id}/cooked")
 def cooked(recipe_id: int, request: Request):
     return found(recipes.mark_cooked(recipe_id, ha_user(request)))
+
+
+@app.get("/api/recipes/{recipe_id}/image")
+def get_image(recipe_id: int):
+    path = images.path(recipe_id)
+    if not path:
+        raise HTTPException(404, "Opskriften har intet billede")
+    return FileResponse(path, media_type=images.MEDIA_TYPE[path.suffix], headers={"Cache-Control": "max-age=31536000"})
+
+
+@app.put("/api/recipes/{recipe_id}/image")
+async def put_image(recipe_id: int, request: Request):
+    found(recipes.get(recipe_id))
+    try:
+        images.save(recipe_id, await request.body(), int(time.time()))
+    except images.InvalidImage as e:
+        raise HTTPException(400, str(e))
+    return recipes.get(recipe_id)
+
+
+@app.delete("/api/recipes/{recipe_id}/image")
+def delete_image(recipe_id: int):
+    found(recipes.get(recipe_id))
+    images.remove(recipe_id, int(time.time()))
+    return recipes.get(recipe_id)
+
+
+@app.post("/api/import/mealie")
+async def import_mealie(request: Request):
+    """The body is the backup zip itself, so no form/multipart handling is needed."""
+    data = await request.body()
+    if len(data) > MAX_IMPORT_BYTES:
+        raise HTTPException(413, "Filen er for stor")
+    try:
+        return mealie.import_backup(data)
+    except mealie.InvalidBackup as e:
+        raise HTTPException(400, str(e))
 
 
 @app.get("/api/tags")

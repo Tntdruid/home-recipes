@@ -15,7 +15,10 @@ async function api(path, options = {}) {
   return r.status === 204 ? null : r.json();
 }
 
-const tagChips = (tags) => tags.map((t) => `<a class="chip" href="#/?tag=${encodeURIComponent(t)}">${esc(t)}</a>`).join("");
+// updated_at changes whenever the photo does, so the browser can cache each version for good
+const imageUrl = (r) => `api/recipes/${r.id}/image?v=${r.updated_at}`;
+
+const tagChips =(tags) => tags.map((t) => `<a class="chip" href="#/?tag=${encodeURIComponent(t)}">${esc(t)}</a>`).join("");
 
 async function showList(params) {
   const q = params.get("q") || "", tag = params.get("tag") || "";
@@ -23,6 +26,7 @@ async function showList(params) {
     <div class="toolbar">
       <input id="search" type="search" placeholder="Søg i titler, ingredienser og tags" value="${esc(q)}">
       ${tag ? `<span class="chip on">${esc(tag)} <a href="#/" title="Fjern filter">×</a></span>` : ""}
+      <a class="btn" href="#/import">Importér fra Mealie</a>
     </div>
     <div id="cards" class="cards"></div>`;
   const search = document.getElementById("search");
@@ -36,11 +40,13 @@ async function showList(params) {
     document.getElementById("cards").innerHTML = list.length
       ? list.map((r) => `
         <a class="card recipe" href="#/r/${r.id}">
+          ${r.image ? `<img class="thumb" src="${imageUrl(r)}" alt="" loading="lazy">` : ""}
           <h3>${esc(r.title)}</h3>
           <p class="muted">${[r.minutes && `${r.minutes} min`, r.servings && `${r.servings} pers.`, ago(r.last_cooked)].filter(Boolean).join(" · ")}</p>
           <div>${r.tags.map((t) => `<span class="chip">${esc(t)}</span>`).join("")}</div>
         </a>`).join("")
-      : `<p class="empty">${q || tag ? "Ingen opskrifter matcher." : 'Ingen opskrifter endnu. <a href="#/new">Tilføj den første</a>.'}</p>`;
+      : `<p class="empty">${q || tag ? "Ingen opskrifter matcher."
+        : 'Ingen opskrifter endnu. <a href="#/new">Tilføj den første</a> eller <a href="#/import">importér fra Mealie</a>.'}</p>`;
   }
   render(q);
   search.focus();
@@ -50,6 +56,7 @@ async function showRecipe(id) {
   const r = await api(`recipes/${id}`);
   view.innerHTML = `
     <article class="card">
+      ${r.image ? `<img class="hero" src="${imageUrl(r)}" alt="">` : ""}
       <div class="title-row">
         <h2>${esc(r.title)}</h2>
         <div class="actions">
@@ -88,6 +95,12 @@ async function showForm(id) {
       <label>Fremgangsmåde <span class="muted">(ét trin pr. linje)</span><textarea name="steps" rows="8">${esc(r.steps.join("\n"))}</textarea></label>
       <label>Tags <span class="muted">(adskilt med komma)</span><input name="tags" value="${esc(r.tags.join(", "))}"></label>
       <label>Kilde (link)<input name="source_url" type="url" value="${esc(r.source_url)}"></label>
+      <div class="image-field">
+        <span class="label">Billede</span>
+        ${r.image ? `<img class="preview" src="${imageUrl(r)}" alt="">
+          <label class="inline"><input type="checkbox" id="remove-image"> Fjern billedet</label>` : ""}
+        <input type="file" id="image" accept="image/jpeg,image/png,image/webp,image/gif">
+      </div>
       <p id="error" class="error" hidden></p>
       <div class="actions">
         <button class="btn primary" type="submit">Gem</button>
@@ -98,11 +111,13 @@ async function showForm(id) {
   const form = document.getElementById("form");
   form.onsubmit = async (e) => {
     e.preventDefault();
+    const fields = Object.fromEntries(new FormData(form));
+    delete fields.image;
     try {
-      const saved = await api(id ? `recipes/${id}` : "recipes", {
-        method: id ? "PUT" : "POST",
-        body: JSON.stringify(Object.fromEntries(new FormData(form))),
-      });
+      const saved = await api(id ? `recipes/${id}` : "recipes", { method: id ? "PUT" : "POST", body: JSON.stringify(fields) });
+      const file = document.getElementById("image").files[0];
+      if (file) await api(`recipes/${saved.id}/image`, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
+      else if (document.getElementById("remove-image")?.checked) await api(`recipes/${saved.id}/image`, { method: "DELETE" });
       location.hash = `#/r/${saved.id}`;
     } catch (err) {
       const box = document.getElementById("error");
@@ -117,6 +132,36 @@ async function showForm(id) {
       location.hash = "#/";
     };
   }
+}
+
+function showImport() {
+  view.innerHTML = `
+    <div class="card form">
+      <h2>Importér fra Mealie</h2>
+      <p>Lav en backup i Mealie under <b>Indstillinger → Backups</b>, hent zip-filen og vælg den her.</p>
+      <p class="muted">Opskrifter, ingredienser, fremgangsmåde, kategorier og tags, billeder og "lavede denne" kommer med.
+        Opskrifter, der allerede findes, bliver sprunget over, så du kan importere den samme backup igen uden dubletter.</p>
+      <input type="file" id="backup" accept=".zip,application/zip">
+      <div class="actions"><button id="run" class="btn primary" disabled>Importér</button></div>
+      <div id="result"></div>
+    </div>`;
+  const input = document.getElementById("backup"), run = document.getElementById("run"), out = document.getElementById("result");
+  input.onchange = () => { run.disabled = !input.files.length; };
+  run.onclick = async () => {
+    run.disabled = true;
+    out.innerHTML = '<p class="muted">Importerer …</p>';
+    try {
+      const r = await api("import/mealie", { method: "POST", body: input.files[0], headers: { "Content-Type": "application/zip" } });
+      out.innerHTML = `
+        <p><b>${r.imported}</b> opskrifter importeret med <b>${r.images}</b> billeder og <b>${r.cooked}</b> måltider i statistikken.</p>
+        ${r.skipped.length ? `<p class="muted">Sprunget over, fordi de allerede findes: ${r.skipped.map(esc).join(", ")}</p>` : ""}
+        ${r.image_errors.length ? `<p class="error">Billeder, der ikke kunne bruges: ${r.image_errors.map(esc).join(", ")}</p>` : ""}
+        <p><a href="#/">Se opskrifterne</a></p>`;
+    } catch (err) {
+      out.innerHTML = `<p class="error">${esc(err.message)}</p>`;
+      run.disabled = false;
+    }
+  };
 }
 
 // A list, not an object: objects sort number keys, which would put "Alt" (0) first
@@ -153,6 +198,7 @@ async function route() {
     else if (parts[0] === "edit") await showForm(parts[1]);
     else if (parts[0] === "new") await showForm(null);
     else if (parts[0] === "stats") await showStats(params);
+    else if (parts[0] === "import") showImport();
     else await showList(params);
   } catch (err) {
     view.innerHTML = `<p class="empty">Noget gik galt: ${esc(err.message)}</p>`;

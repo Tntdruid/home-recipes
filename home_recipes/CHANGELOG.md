@@ -2,6 +2,18 @@
 
 🇬🇧 English first, 🇩🇰 dansk nedenunder i hver version.
 
+## 0.2.0
+
+🇬🇧
+- Import from Mealie: upload a Mealie backup zip under "Importér fra Mealie". Recipes, ingredients, steps, categories and tags, photos and "made this" history come along
+- Recipes that already exist are skipped, including Mealie's own "(1)" copies, so the same backup can be imported again without duplicates
+- Recipes can have a photo: upload, replace or remove it when editing. Photos are shown on the cards and the recipe page, and are stored in the add-on's config folder next to the database
+
+🇩🇰
+- Import fra Mealie: upload en Mealie-backup (zip) under "Importér fra Mealie". Opskrifter, ingredienser, fremgangsmåde, kategorier og tags, billeder og "lavede denne"-historik kommer med
+- Opskrifter, der allerede findes, springes over, også Mealies egne "(1)"-kopier, så den samme backup kan importeres igen uden dubletter
+- Opskrifter kan have et billede: upload, skift eller fjern det, når du redigerer. Billederne vises på kortene og opskriftssiden og gemmes i add-on'ets config-mappe ved siden af databasen
+
 ## 0.1.0
 
 🇬🇧

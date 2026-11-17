@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS recipes (
     steps       TEXT NOT NULL DEFAULT '[]',  -- JSON list of lines
     tags        TEXT NOT NULL DEFAULT '[]',  -- JSON list
     source_url  TEXT NOT NULL DEFAULT '',
+    image       TEXT,                        -- file name in the images folder, NULL = no photo
     created_at  INTEGER NOT NULL,            -- unix seconds, UTC
     updated_at  INTEGER NOT NULL
 );
@@ -46,6 +47,11 @@ def connect(path: Optional[Path] = None) -> None:
     _conn.execute("PRAGMA foreign_keys = ON")
     _conn.execute("PRAGMA journal_mode = WAL")
     _conn.executescript(SCHEMA)
+    # Columns added after 0.1.0; CREATE TABLE IF NOT EXISTS doesn't add them to an existing database
+    columns = {r["name"] for r in _conn.execute("PRAGMA table_info(recipes)")}
+    if "image" not in columns:
+        _conn.execute("ALTER TABLE recipes ADD COLUMN image TEXT")
+        _conn.commit()
 
 
 def query(sql: str, args=()) -> list:

@@ -4,6 +4,7 @@ import time
 from typing import Optional
 
 import db
+import images
 
 
 class InvalidRecipe(ValueError):
@@ -108,6 +109,7 @@ def update(recipe_id: int, data: dict) -> Optional[dict]:
 
 
 def delete(recipe_id: int) -> bool:
+    images.delete_file_of(recipe_id)
     return db.execute("DELETE FROM recipes WHERE id = ?", (recipe_id,)).rowcount > 0
 
 

@@ -14,6 +14,7 @@ A Home Assistant add-on with a recipe collection and statistics on what you cook
 
 - Recipes with ingredients, steps, tags, servings, time and a source link
 - Search titles, ingredients and tags, and filter by tag
+- Photos on recipes, and import from a Mealie backup (recipes, photos and "made this" history)
 - Log a meal with one tap; the Home Assistant user is remembered
 - Statistics: most cooked recipes, popular tags, recent meals and recipes you haven't made for a long time
 
@@ -46,6 +47,7 @@ Et Home Assistant-add-on med en opskriftssamling og statistik over, hvad I laver
 
 - Opskrifter med ingredienser, fremgangsmåde, tags, antal personer, tid og link til kilden
 - Søg i titler, ingredienser og tags, og filtrér på tags
+- Billeder på opskrifterne og import fra en Mealie-backup (opskrifter, billeder og "lavede denne"-historik)
 - Registrér et måltid med ét tryk; Home Assistant-brugeren bliver husket
 - Statistik: mest lavede opskrifter, populære tags, seneste måltider og opskrifter, I ikke har lavet længe
 
